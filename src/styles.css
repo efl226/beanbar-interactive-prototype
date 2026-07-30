@@ -66,7 +66,7 @@ body::before {
 
 .dial-hint {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: 24px;
   color: var(--mut);
   text-align: center;
 }
