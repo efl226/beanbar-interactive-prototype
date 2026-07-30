@@ -16,8 +16,8 @@ const from24 = (total) => {
 
 export default function App() {
   const [on, setOn] = useState(false)
-  const [roastIndex, setRoastIndex] = useState(1)  // Medium
-  const [styleIndex, setStyleIndex] = useState(2)  // Over Ice
+  const [roastIndex, setRoastIndex] = useState(0)  // Light
+  const [styleIndex, setStyleIndex] = useState(0)  // Regular
   const [sizeIndex, setSizeIndex] = useState(2)    // 12oz
 
   // Two testable clock-setting behaviors, switched via the tabs above the
@@ -45,7 +45,8 @@ export default function App() {
   }, [])
 
   // Brewing: clicking the dial while not editing clock/delay starts a brew
-  // (only once roast, style and size are all selected), showing a pulsing
+  // (only once a size is selected — roast/style already have valid defaults
+  // of Light/Regular, so those never block starting), showing a pulsing
   // ring for a fixed 5s demo duration.
   const [brewing, setBrewing] = useState(false)
   const brewTimeoutRef = useRef(null)
@@ -167,7 +168,6 @@ export default function App() {
     armSelector(null)
     setEditing('delay')
     setEditPart(clockMode === 'continuous' ? 'time' : 'hour')
-    setDelay((d) => (d.h ? d : { h: 1, m: d.m || 1, ampm: d.ampm || 'AM' }))
     setDelayScheduled(false)
   }, [editing, armSelector, clockMode])
 
@@ -176,7 +176,6 @@ export default function App() {
     armSelector(null)
     setEditing('clock')
     setEditPart(clockMode === 'continuous' ? 'time' : 'hour')
-    setClock((c) => (c.h ? c : { h: 1, m: c.m || 1, ampm: c.ampm || 'AM' }))
   }, [editing, armSelector, clockMode])
 
   const onDial = useCallback((dir) => {
@@ -199,14 +198,13 @@ export default function App() {
 
   const onDialClick = useCallback(() => {
     if (!editing) {
-      // Count whatever was just armed (even if not yet "committed") toward
-      // readiness, so picking your last option and immediately clicking the
-      // dial to brew works — the async commit inside armSelector() below
-      // hasn't applied to roastLocked/styleLocked/sizeLocked yet at this point.
-      const canBrewNow =
-        (roastLocked || armedSelector === 'roast' || preGroundSelected) &&
-        (styleLocked || armedSelector === 'style') &&
-        (sizeLocked || armedSelector === 'size')
+      // Roast/Style already default to Light/Regular, so they never block
+      // starting a brew — only size needs an actual selection. Count a
+      // just-armed size toward readiness even if not yet "committed", so
+      // picking it and immediately clicking the dial to brew works — the
+      // async commit inside armSelector() below hasn't applied to
+      // sizeLocked yet at this point.
+      const canBrewNow = sizeLocked || armedSelector === 'size'
       armSelector(null)
       if (!canBrewNow) return
       brewedCarafeRef.current = sizeIndex >= CUP_SIZES.length
@@ -234,7 +232,7 @@ export default function App() {
       setEditing(null)
       setEditPart(null)
     }
-  }, [editing, editPart, roastLocked, styleLocked, sizeLocked, preGroundSelected, armedSelector, sizeIndex, armSelector, clockMode])
+  }, [editing, editPart, sizeLocked, armedSelector, sizeIndex, armSelector, clockMode])
 
   // While actively editing, show whatever's being edited. Otherwise, a
   // scheduled delay brew takes priority over the set clock until it's
