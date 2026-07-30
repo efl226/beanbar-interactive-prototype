@@ -8,7 +8,8 @@
 import { D, VB, RECTS } from '../assets/panel/coffeeIconPaths.js'
 
 export const ORANGE = '#f47522'
-export const GRAY = '#9e9d9e'
+export const GRAY = '#9e9d9e'       // backlit, unselected
+export const LIT_WHITE = '#ffffff'  // backlit, selected
 export const BEAN_LIGHT = '#939598'
 export const BEAN_DARK = '#414042'
 export const PANEL_WHITE = '#f1f2f2'
@@ -35,7 +36,7 @@ export function MugIcon({ variant, color }) {
   return (
     <svg viewBox={vb} style={svgBase}>
       <path d={bodyD} fill={color} />
-      {leaves.map((ld, i) => <path key={i} d={ld} fill={BEAN_LIGHT} />)}
+      {leaves.map((ld, i) => <path key={i} d={ld} fill={color} />)}
     </svg>
   )
 }
@@ -104,38 +105,38 @@ export function CupIcon({ size, color }) {
   }
 }
 
-// level: 0=1/4, 1=1/2, 2=3/4, 3=Full
-export function KettleIcon({ level }) {
+// level: 0=1/4, 1=1/3, 2=3/4, 3=Full
+export function KettleIcon({ level, color = GRAY }) {
   if (level === 0) {
     return (
       <svg viewBox={VB.KETTLE14} style={svgBase}>
-        <path d={D.KETTLE_BODY} fill={GRAY} />
-        <path d={D.KETTLE_FILL_14} fill={GRAY} />
+        <path d={D.KETTLE_BODY} fill={color} />
+        <path d={D.KETTLE_FILL_14} fill={color} />
       </svg>
     )
   }
   if (level === 1) {
     return (
       <svg viewBox={VB.KETTLE12} style={svgBase}>
-        <path d={D.KETTLE_BODY_12} fill={GRAY} />
-        <path d={D.KETTLE_FILL_12} fill={GRAY} />
+        <path d={D.KETTLE_BODY_12} fill={color} />
+        <path d={D.KETTLE_FILL_12} fill={color} />
       </svg>
     )
   }
   if (level === 2) {
     return (
       <svg viewBox={VB.KETTLE34} style={svgBase}>
-        <path d={D.KETTLE_BODY_34} fill={GRAY} />
-        <path d={D.KETTLE_FILL_34_L} fill={GRAY} />
-        <path d={D.KETTLE_FILL_34_R} fill={GRAY} />
+        <path d={D.KETTLE_BODY_34} fill={color} />
+        <path d={D.KETTLE_FILL_34_L} fill={color} />
+        <path d={D.KETTLE_FILL_34_R} fill={color} />
       </svg>
     )
   }
   return (
     <svg viewBox={VB.KETTLEFULL} style={svgBase}>
-      <path d={D.KETTLE_FILL_FULL_L} fill={GRAY} />
-      <path d={D.KETTLE_FILL_FULL_R} fill={GRAY} />
-      <path d={D.KETTLE_BODY_FULL} fill={GRAY} />
+      <path d={D.KETTLE_FILL_FULL_L} fill={color} />
+      <path d={D.KETTLE_FILL_FULL_R} fill={color} />
+      <path d={D.KETTLE_BODY_FULL} fill={color} />
     </svg>
   )
 }
@@ -165,7 +166,7 @@ export function WaterDropIcon({ slashed = true, color = '#fff' }) {
 // viewBox matches the dial's own 144.24 x 143.98 local space so this can be
 // positioned with the same box as the rest of the dial's layers.
 export function StartStopLabel() {
-  const cx = 72.12, cy = 71.99
+  const cx = 72.12, cy = 71.99 + 7
   const r = 59
   const halfSpanDeg = 24
   const rad = (deg) => (deg * Math.PI) / 180
@@ -195,6 +196,24 @@ export function CuisinartLogo() {
         </linearGradient>
       </defs>
       <path d={D.CUISINART_LOGO} fill="url(#cm-logo-grad)" />
+    </svg>
+  )
+}
+
+// Brewing indicator — traces the same outer circle as the dial's inner
+// black face (cx 72.91, cy 71.98, r 63.19) with the turquoise/blue gradient
+// from the source "DIAL BREWING.svg" export, in place of that file's gray
+// metal-ring stroke. Pulses via CSS (.cm-dial-brew-ring) while active.
+export function DialBrewRing() {
+  return (
+    <svg viewBox="0 0 144.24 143.98" style={svgBase}>
+      <defs>
+        <linearGradient id="cm-brew-ring-grad" x1="9.22" y1="71.98" x2="136.6" y2="71.98" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#177095" />
+          <stop offset="1" stopColor="#298ece" />
+        </linearGradient>
+      </defs>
+      <circle cx="72.91" cy="71.98" r="63.19" fill="none" stroke="url(#cm-brew-ring-grad)" strokeWidth={3} />
     </svg>
   )
 }
