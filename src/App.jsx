@@ -44,26 +44,24 @@ export default function App() {
     setEditPart(null)
   }, [])
 
-  // Brewing: clicking the dial while not editing clock/delay starts a brew
-  // (only once a size is selected — roast/style already have valid defaults
-  // of Light/Regular, so those never block starting), showing a pulsing
-  // ring for a fixed 5s demo duration.
+  // Brewing: clicking the dial while not editing clock/delay always starts a
+  // brew — whatever's currently selected (Light/Regular by default, or
+  // whatever you've since chosen) is what brews, no prerequisite selection
+  // needed. Shows a pulsing ring; the non-selected options in each group
+  // only drop to 20% opacity for as long as this is running. Pressing the
+  // dial again while brewing cancels it early.
   const [brewing, setBrewing] = useState(false)
   const brewTimeoutRef = useRef(null)
   const brewedCarafeRef = useRef(false) // was a carafe (not single-serve) size selected when this brew started
 
-  // Pill underline state. armedSelector is whichever of roast/style/size was
-  // most recently touched and hasn't yet been "committed" by a different
-  // action — that one's underline blinks (roast/style only — size has no
-  // pill of its own) and its option row stays at full opacity; any
-  // previously-touched one goes solid white and its non-selected options
-  // drop to 20%. Re-touching the *same* one just keeps it uncommitted, so
-  // spinning through several sizes (or roast/style presses) in a row never
-  // dims anything until you move on to something else.
-  const [armedSelector, setArmedSelector] = useState(null) // null | 'roast' | 'style' | 'size'
+  // Pill underline state (Roast/Style only — purely cosmetic, unrelated to
+  // the 20% dimming above). armedSelector is whichever of roast/style was
+  // most recently pressed and hasn't yet been "committed" by a different
+  // action — that one's underline blinks; a previously-touched one goes
+  // solid white once you move on to something else.
+  const [armedSelector, setArmedSelector] = useState(null) // null | 'roast' | 'style'
   const [roastLocked, setRoastLocked] = useState(false)
   const [styleLocked, setStyleLocked] = useState(false)
-  const [sizeLocked, setSizeLocked] = useState(false)
   const [preGroundSelected, setPreGroundSelected] = useState(false)
   const [cleanFlash, setCleanFlash] = useState(false)
   const cleanTimeoutRef = useRef(null)
@@ -103,13 +101,12 @@ export default function App() {
   }, [on])
 
   // Re-arming a different selector (or clearing to null) is the "confirm"
-  // moment for whichever of roast/style/size was previously armed — that's
-  // when its dimming/blinking kicks in. Re-pressing/re-turning the *same*
-  // one just keeps it blinking/uncommitted.
+  // moment for whichever of roast/style was previously armed — that's when
+  // its pill stops blinking and goes solid. Re-pressing the *same* one just
+  // keeps it blinking/uncommitted.
   const armSelector = useCallback((next) => {
     if (armedSelector === 'roast' && next !== 'roast') setRoastLocked(true)
     if (armedSelector === 'style' && next !== 'style') setStyleLocked(true)
-    if (armedSelector === 'size' && next !== 'size') setSizeLocked(true)
     setArmedSelector(next)
   }, [armedSelector])
 
@@ -117,7 +114,6 @@ export default function App() {
     setArmedSelector(null)
     setRoastLocked(false)
     setStyleLocked(false)
-    setSizeLocked(false)
     setPreGroundSelected(false)
     clearTimeout(cleanTimeoutRef.current)
     setCleanFlash(false)
@@ -192,21 +188,21 @@ export default function App() {
       }
     } else {
       setSizeIndex((i) => (i + dir + SIZE_RING_LENGTH) % SIZE_RING_LENGTH)
-      armSelector('size')
+      armSelector(null)
     }
   }, [editing, editPart, clockMode, armSelector])
 
   const onDialClick = useCallback(() => {
     if (!editing) {
-      // Roast/Style already default to Light/Regular, so they never block
-      // starting a brew — only size needs an actual selection. Count a
-      // just-armed size toward readiness even if not yet "committed", so
-      // picking it and immediately clicking the dial to brew works — the
-      // async commit inside armSelector() below hasn't applied to
-      // sizeLocked yet at this point.
-      const canBrewNow = sizeLocked || armedSelector === 'size'
+      if (brewing) {
+        // Pressing the dial again mid-brew cancels it early — no keep-warm
+        // hand-off, since the brew didn't actually finish.
+        clearTimeout(brewTimeoutRef.current)
+        setBrewing(false)
+        resetSelectionState()
+        return
+      }
       armSelector(null)
-      if (!canBrewNow) return
       brewedCarafeRef.current = sizeIndex >= CUP_SIZES.length
       setBrewing(true)
       clearTimeout(brewTimeoutRef.current)
@@ -232,7 +228,7 @@ export default function App() {
       setEditing(null)
       setEditPart(null)
     }
-  }, [editing, editPart, sizeLocked, armedSelector, sizeIndex, armSelector, clockMode])
+  }, [editing, editPart, brewing, sizeIndex, armSelector, clockMode])
 
   // While actively editing, show whatever's being edited. Otherwise, a
   // scheduled delay brew takes priority over the set clock until it's
@@ -285,7 +281,6 @@ export default function App() {
           armedSelector={armedSelector}
           roastLocked={roastLocked}
           styleLocked={styleLocked}
-          sizeLocked={sizeLocked}
           preGroundSelected={preGroundSelected}
           cleanFlash={cleanFlash}
           keepWarmOn={keepWarmOn}

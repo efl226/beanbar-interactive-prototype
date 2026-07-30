@@ -144,7 +144,7 @@ const pad2 = (n) => String(n).padStart(2, '0')
 export default function Panel({
   on, roastIndex, styleIndex, sizeIndex, onTogglePower, onCycleRoast, onCycleStyle, onDial,
   displayTime, blinkHour, blinkMinute, blinkAmPm, delayScheduled, onPressDelayBrew, onPressClock, onDialClick,
-  brewing, armedSelector, roastLocked, styleLocked, sizeLocked, preGroundSelected,
+  brewing, armedSelector, roastLocked, styleLocked, preGroundSelected,
   cleanFlash, keepWarmOn, editingDelay, editingClock,
   onPressPreGround, onPressClean, onPressKeepWarm,
   showAddWater, showAddBeans, showEmptyBasket,
@@ -197,7 +197,7 @@ export default function Panel({
           const active = roastIndex === i && !preGroundSelected
           const iconColor = active ? LIT_WHITE : ROAST_ICON_NEUTRAL[i]
           const textColor = active ? LIT_WHITE : GRAY
-          const dimmed = (roastLocked || preGroundSelected) && !active
+          const dimmed = brewing && !active
           const top = BEAN_ICON[1] + ROAST_ROW_SPACING * i - (ROAST_ROW_H - BEAN_ICON[3]) / 2
           return (
             <div key={name} className="cm-option-row" style={{ ...box(BEAN_ICON[0], top, 150, ROAST_ROW_H), gap: 11, transition: 'opacity .2s', opacity: !on ? 0 : dimmed ? 0.2 : 1 }}>
@@ -214,7 +214,7 @@ export default function Panel({
         {STYLES.map((name, i) => {
           const active = styleIndex === i
           const color = active ? LIT_WHITE : GRAY
-          const dimmed = styleLocked && !active
+          const dimmed = brewing && !active
           const iconBox = i < 2 ? MUG_ICON : GLASS_ICON
           const icon = i === 0 ? <MugIcon variant="regular" color={color} />
             : i === 1 ? <MugIcon variant="bold" color={color} />
@@ -233,7 +233,7 @@ export default function Panel({
         {CUP_SIZES.map((size, i) => {
           const active = sizeIndex === i
           const color = active ? LIT_WHITE : GRAY
-          const dimmed = sizeLocked && !active
+          const dimmed = brewing && !active
           const iconBox = CUP_ICON_BOX[size]
           const slot = CUP_SLOT[size]
           return (
@@ -248,7 +248,7 @@ export default function Panel({
         {WATER_LEVELS.map((label, i) => {
           const active = sizeIndex === CUP_SIZES.length + i
           const color = active ? LIT_WHITE : GRAY
-          const dimmed = sizeLocked && !active
+          const dimmed = brewing && !active
           return (
             <div key={label} className="cm-kettle" style={{ ...box(...KETTLE_SLOT[i]), transition: 'opacity .2s', opacity: !on ? 0 : dimmed ? 0.2 : 1 }}>
               <div style={{ width: KETTLE_ICON_BOX[i][2], height: KETTLE_ICON_BOX[i][3] }}><KettleIcon level={i} color={color} /></div>
@@ -326,7 +326,6 @@ export default function Panel({
               })}
             </div>
             <div className="cm-dial-caption" style={{ ...box(...DIAL_CAPTION_BOX), opacity: delayScheduled && !editingClock ? 1 : 0 }}>Delay Brew Scheduled</div>
-            <img className="cm-dial-layer" style={box(...DIAL_DRIPSTOP_BOX)} src={dialDripstop} alt="" draggable={false} />
             <div className="cm-dial-layer" style={box(0, 0, 144.24, 143.98)}><StartStopLabel /></div>
           </div>
         </div>
