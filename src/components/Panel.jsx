@@ -325,7 +325,7 @@ export default function Panel({
                 )
               })}
             </div>
-            <div className="cm-dial-caption" style={{ ...box(...DIAL_CAPTION_BOX), opacity: delayScheduled ? 1 : 0 }}>Delay Brew Scheduled</div>
+            <div className="cm-dial-caption" style={{ ...box(...DIAL_CAPTION_BOX), opacity: delayScheduled && !editingClock ? 1 : 0 }}>Delay Brew Scheduled</div>
             <img className="cm-dial-layer" style={box(...DIAL_DRIPSTOP_BOX)} src={dialDripstop} alt="" draggable={false} />
             <div className="cm-dial-layer" style={box(0, 0, 144.24, 143.98)}><StartStopLabel /></div>
           </div>
