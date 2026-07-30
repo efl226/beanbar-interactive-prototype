@@ -39,6 +39,32 @@ body::before {
 .brand .tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--mut); font-family: 'JetBrains Mono', monospace; }
 
 /* ================================================
+   CLOCK-MODE TABS — page chrome for A/B testing the two clock-setting
+   behaviors; not part of the physical device, so styled as plain web UI
+   rather than panel chrome.
+   ================================================ */
+.clock-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin: -2px 0 2px;
+}
+.clock-mode-tab {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  color: var(--mut);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.clock-mode-tab:hover { color: var(--ink); border-color: var(--faint); }
+.clock-mode-tab.active { color: #fff; background: var(--ink); border-color: var(--ink); }
+
+/* ================================================
    PANEL PAGE — centered panel
    ================================================ */
 

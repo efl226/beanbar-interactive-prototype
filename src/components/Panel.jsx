@@ -98,7 +98,7 @@ const DIAL_DRIPSTOP_BOX = [66.72, 109.91, 10.93, 11.38]
 // AM/PM indicator (Figma node 125:3297): sits just under the digits,
 // right of center. Measured directly off that node's own screenshot since
 // get_metadata doesn't expand these as separate text nodes.
-const DIAL_AMPM_BOX = [95, 90.5, 32, 7]
+const DIAL_AMPM_BOX = [85, 90.5, 32, 7]
 
 const ADD_WATER_SLOT = [212, 355, 66, 34]
 const ADD_BEANS_SLOT = [301, 355, 66, 34]
