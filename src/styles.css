@@ -202,7 +202,7 @@ body::before {
 .cm-caption-2l {
   position: absolute;
   text-align: center;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1.35;
   white-space: nowrap;
   transition: opacity .2s;
