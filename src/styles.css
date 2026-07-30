@@ -64,6 +64,13 @@ body::before {
 .clock-mode-tab:hover { color: var(--ink); border-color: var(--faint); }
 .clock-mode-tab.active { color: #fff; background: var(--ink); border-color: var(--ink); }
 
+.dial-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--mut);
+  text-align: center;
+}
+
 /* ================================================
    PANEL PAGE — centered panel
    ================================================ */
@@ -179,7 +186,7 @@ body::before {
   justify-content: flex-end;
 }
 .cm-cup-label { font-size: 12px; margin-top: 2px; line-height: 1; }
-.cm-cup-oz { font-family: 'Myriad Pro', 'Helvetica Neue', Arial, sans-serif; font-size: 6px; }
+.cm-cup-oz { font-family: 'Myriad Pro', 'Helvetica Neue', Arial, sans-serif; font-size: 12px; }
 
 /* ---- Reservoir kettle gauge ---- */
 .cm-kettle {
@@ -190,15 +197,17 @@ body::before {
 }
 .cm-kettle-label { font-size: 12px; margin-top: 1px; }
 
-/* ---- Dimmed two-line action captions (Add Water / Add Beans / Empty Basket) ---- */
+/* ---- Two-line action alert captions (Add Water / Add Beans / Empty
+   Basket) — hidden by default, flash full white briefly (see App.jsx). ---- */
 .cm-caption-2l {
   position: absolute;
   text-align: center;
   font-size: 12px;
-  color: #9e9d9e;
   line-height: 1.35;
   white-space: nowrap;
+  transition: opacity .2s;
 }
+.cm-caption-alert { color: #fff; }
 
 /* ---- Dial — layered image assets pulled directly from Figma node
    147:2582 (metal bezel photo, dark face + screen-blend glow, ring

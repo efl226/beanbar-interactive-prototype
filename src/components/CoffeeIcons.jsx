@@ -91,7 +91,6 @@ export function CupIcon({ size, color }) {
           <path d={D.CUP18OZ_BODY} fill={color} />
           {RECTS.CUP18_LINES.map((r, i) => <rect key={i} x={r.x} y={r.y} width={r.width} height={r.height} fill={color} />)}
           <path d={D.CUP18OZ_LID} fill={color} />
-          <path d={D.CUP18OZ_HIGHLIGHT} fill="none" stroke={color} strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     case 12:

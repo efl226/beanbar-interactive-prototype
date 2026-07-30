@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useEffect } from 'react'
 import {
   BeanIcon, MugIcon, GlassIcon, CupIcon, KettleIcon, PowerIcon, CuisinartLogo, StartStopLabel,
   DialBrewRing, GRAY, LIT_WHITE,
@@ -147,20 +147,8 @@ export default function Panel({
   brewing, armedSelector, roastLocked, styleLocked, sizeLocked, preGroundSelected,
   cleanFlash, keepWarmOn, editingDelay, editingClock,
   onPressPreGround, onPressClean, onPressKeepWarm,
+  showAddWater, showAddBeans, showEmptyBasket,
 }) {
-  const wheelAccum = useRef(0)
-
-  const handleWheel = (e) => {
-    if (!on) return
-    e.preventDefault()
-    wheelAccum.current += e.deltaY
-    const threshold = 40
-    while (Math.abs(wheelAccum.current) >= threshold) {
-      onDial(wheelAccum.current > 0 ? 1 : -1)
-      wheelAccum.current += wheelAccum.current > 0 ? -threshold : threshold
-    }
-  }
-
   useEffect(() => {
     const handleKey = (e) => {
       if (!on) return
@@ -173,18 +161,20 @@ export default function Panel({
 
   // Backlit-group opacity: fully off (invisible) when unpowered.
   const backlit = { opacity: on ? 1 : 0, transition: 'opacity .2s' }
-  // Add Water/Beans/Basket read as dimmed indicators even when lit.
-  const backlitDim = { opacity: on ? 0.5 : 0, transition: 'opacity .2s' }
 
-  // Pill underline colors — grey when off. Roast/Style stay white once
-  // touched (blinking while that one is the actively-being-cycled control,
-  // solid once a different action commits it). Pre-Ground and Roast are
-  // mutually exclusive, so each greys the other's underline out while
+  // Pill underline colors — grey when off. Roast/Style only turn white once
+  // *that control itself* has been touched (armed or locked) — merely
+  // powering on, or being mid-selection on the OTHER one, leaves an
+  // untouched pill grey. Blinks while it's the actively-being-cycled
+  // control, solid once a different action commits it. Pre-Ground and Roast
+  // are mutually exclusive, so each greys the other's underline out while
   // selected. Clean/Keep Warm/Delay Brew/Clock stay grey-while-on until
   // their own trigger lights them, and never blink.
-  const roastUnderline = !on || preGroundSelected ? GRAY : LIT_WHITE
+  const roastTouched = roastLocked || armedSelector === 'roast'
+  const roastUnderline = on && roastTouched && !preGroundSelected ? LIT_WHITE : GRAY
   const roastUnderlineBlink = on && armedSelector === 'roast' && !preGroundSelected
-  const styleUnderline = !on ? GRAY : LIT_WHITE
+  const styleTouched = styleLocked || armedSelector === 'style'
+  const styleUnderline = on && styleTouched ? LIT_WHITE : GRAY
   const styleUnderlineBlink = on && armedSelector === 'style'
   const preGroundUnderline = on && preGroundSelected ? LIT_WHITE : GRAY
   const cleanUnderline = on && cleanFlash ? LIT_WHITE : GRAY
@@ -194,7 +184,7 @@ export default function Panel({
 
   return (
     <div className="panelwrap">
-      <div className="panel" onWheel={handleWheel}>
+      <div className="panel">
         <div className="panel-shell">
           <img className="panel-texture" src={panelTexture} alt="" draggable={false} />
         </div>
@@ -279,10 +269,12 @@ export default function Panel({
           <PillLabel underlineColor={preGroundUnderline}>Pre-Ground</PillLabel>
         </Pill>
 
-        {/* ---- Add Water / Add Beans / Empty Basket (backlit indicators) ---- */}
-        <div className="cm-caption-2l" style={{ ...box(...ADD_WATER_SLOT), ...backlitDim }}>Add<br />Water</div>
-        <div className="cm-caption-2l" style={{ ...box(...ADD_BEANS_SLOT), ...backlitDim }}>Add<br />Beans</div>
-        <div className="cm-caption-2l" style={{ ...box(...EMPTY_BASKET_SLOT), ...backlitDim }}>Empty<br />Basket</div>
+        {/* ---- Add Water / Add Beans / Empty Basket — hidden by default,
+             each pops up full white for 3s at a random moment roughly every
+             30s (see App.jsx) to simulate an intermittent error/status alert. ---- */}
+        <div className="cm-caption-2l cm-caption-alert" style={{ ...box(...ADD_WATER_SLOT), opacity: showAddWater ? 1 : 0 }}>Add<br />Water</div>
+        <div className="cm-caption-2l cm-caption-alert" style={{ ...box(...ADD_BEANS_SLOT), opacity: showAddBeans ? 1 : 0 }}>Add<br />Beans</div>
+        <div className="cm-caption-2l cm-caption-alert" style={{ ...box(...EMPTY_BASKET_SLOT), opacity: showEmptyBasket ? 1 : 0 }}>Empty<br />Basket</div>
 
         {/* ---- Clean / Keep Warm (press flashes the underline pill white
              for 5 seconds) ---- */}

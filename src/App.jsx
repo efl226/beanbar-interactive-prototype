@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import Panel, { ROAST_LEVELS, STYLES, CUP_SIZES, SIZE_RING_LENGTH } from './components/Panel.jsx'
 
 const wrap = (v, lo, hi) => (v > hi ? lo : v < lo ? hi : v)
@@ -51,13 +51,15 @@ export default function App() {
   const brewTimeoutRef = useRef(null)
   const brewedCarafeRef = useRef(false) // was a carafe (not single-serve) size selected when this brew started
 
-  // Pill underline state. armedSelector is whichever of roast/style was most
-  // recently pressed and hasn't yet been "committed" by a different action —
-  // that one's underline blinks; any previously-touched one goes solid white.
-  // *Locked flags gate the option rows' 20% dim-the-rest-of-the-group look,
-  // and reset (along with everything else here) when a brew finishes or the
-  // machine powers off.
-  const [armedSelector, setArmedSelector] = useState(null) // null | 'roast' | 'style'
+  // Pill underline state. armedSelector is whichever of roast/style/size was
+  // most recently touched and hasn't yet been "committed" by a different
+  // action — that one's underline blinks (roast/style only — size has no
+  // pill of its own) and its option row stays at full opacity; any
+  // previously-touched one goes solid white and its non-selected options
+  // drop to 20%. Re-touching the *same* one just keeps it uncommitted, so
+  // spinning through several sizes (or roast/style presses) in a row never
+  // dims anything until you move on to something else.
+  const [armedSelector, setArmedSelector] = useState(null) // null | 'roast' | 'style' | 'size'
   const [roastLocked, setRoastLocked] = useState(false)
   const [styleLocked, setStyleLocked] = useState(false)
   const [sizeLocked, setSizeLocked] = useState(false)
@@ -71,13 +73,42 @@ export default function App() {
   // off, and even that's blocked while Clean is running.
   const [keepWarmOn, setKeepWarmOn] = useState(false)
 
+  // Add Water / Add Beans / Empty Basket: hidden by default, each pops up
+  // full white for 3s at a random moment roughly every 30s while powered on.
+  const [showAddWater, setShowAddWater] = useState(false)
+  const [showAddBeans, setShowAddBeans] = useState(false)
+  const [showEmptyBasket, setShowEmptyBasket] = useState(false)
+
+  useEffect(() => {
+    if (!on) {
+      setShowAddWater(false)
+      setShowAddBeans(false)
+      setShowEmptyBasket(false)
+      return
+    }
+    const timers = []
+    const loop = (setShow) => {
+      const delay = Math.random() * 27000 // leaves room for the 3s show within a ~30s cycle
+      timers.push(setTimeout(() => {
+        setShow(true)
+        timers.push(setTimeout(() => setShow(false), 3000))
+        timers.push(setTimeout(() => loop(setShow), 30000 - delay))
+      }, delay))
+    }
+    loop(setShowAddWater)
+    loop(setShowAddBeans)
+    loop(setShowEmptyBasket)
+    return () => timers.forEach(clearTimeout)
+  }, [on])
+
   // Re-arming a different selector (or clearing to null) is the "confirm"
-  // moment for whichever of roast/style was previously armed — that's when
-  // its pill stops blinking AND its option row dimming kicks in. Re-pressing
-  // the *same* one just keeps it blinking/uncommitted.
+  // moment for whichever of roast/style/size was previously armed — that's
+  // when its dimming/blinking kicks in. Re-pressing/re-turning the *same*
+  // one just keeps it blinking/uncommitted.
   const armSelector = useCallback((next) => {
     if (armedSelector === 'roast' && next !== 'roast') setRoastLocked(true)
     if (armedSelector === 'style' && next !== 'style') setStyleLocked(true)
+    if (armedSelector === 'size' && next !== 'size') setSizeLocked(true)
     setArmedSelector(next)
   }, [armedSelector])
 
@@ -162,17 +193,22 @@ export default function App() {
       }
     } else {
       setSizeIndex((i) => (i + dir + SIZE_RING_LENGTH) % SIZE_RING_LENGTH)
-      setSizeLocked(true)
-      armSelector(null)
+      armSelector('size')
     }
   }, [editing, editPart, clockMode, armSelector])
 
-  const canBrew = (roastLocked || preGroundSelected) && styleLocked && sizeLocked
-
   const onDialClick = useCallback(() => {
     if (!editing) {
+      // Count whatever was just armed (even if not yet "committed") toward
+      // readiness, so picking your last option and immediately clicking the
+      // dial to brew works — the async commit inside armSelector() below
+      // hasn't applied to roastLocked/styleLocked/sizeLocked yet at this point.
+      const canBrewNow =
+        (roastLocked || armedSelector === 'roast' || preGroundSelected) &&
+        (styleLocked || armedSelector === 'style') &&
+        (sizeLocked || armedSelector === 'size')
       armSelector(null)
-      if (!canBrew) return
+      if (!canBrewNow) return
       brewedCarafeRef.current = sizeIndex >= CUP_SIZES.length
       setBrewing(true)
       clearTimeout(brewTimeoutRef.current)
@@ -198,7 +234,7 @@ export default function App() {
       setEditing(null)
       setEditPart(null)
     }
-  }, [editing, editPart, canBrew, sizeIndex, armSelector, clockMode])
+  }, [editing, editPart, roastLocked, styleLocked, sizeLocked, preGroundSelected, armedSelector, sizeIndex, armSelector, clockMode])
 
   const displayTime = editing === 'delay' ? delay : clock
 
@@ -255,7 +291,11 @@ export default function App() {
           onPressPreGround={onPressPreGround}
           onPressClean={onPressClean}
           onPressKeepWarm={onPressKeepWarm}
+          showAddWater={showAddWater}
+          showAddBeans={showAddBeans}
+          showEmptyBasket={showEmptyBasket}
         />
+        <p className="dial-hint">Use the ↑ / ↓ arrow keys to turn the dial.</p>
       </div>
     </div>
   )
