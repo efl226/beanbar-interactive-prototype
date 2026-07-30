@@ -236,7 +236,12 @@ export default function App() {
     }
   }, [editing, editPart, roastLocked, styleLocked, sizeLocked, preGroundSelected, armedSelector, sizeIndex, armSelector, clockMode])
 
-  const displayTime = editing === 'delay' ? delay : clock
+  // While actively editing, show whatever's being edited. Otherwise, a
+  // scheduled delay brew takes priority over the set clock until it's
+  // re-armed or edited again.
+  const displayTime = editing !== null
+    ? (editing === 'delay' ? delay : clock)
+    : (delayScheduled ? delay : clock)
 
   return (
     <div className="pp">
